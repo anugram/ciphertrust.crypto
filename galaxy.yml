@@ -1,0 +1,31 @@
+namespace: ciphertrust
+
+name: crypto
+
+version: 1.0.0
+
+readme: README.md
+
+authors:
+- Anurag Jain <mr.anurag.jain@gmail.com>
+
+description: Ansible collection for crypto operations like key generation, signing certificates, encryption, decryption, signing, and verification, etc.
+
+license:
+- GPL-2.0-or-later
+
+license_file: ''
+
+tags: []
+
+dependencies: {}
+
+repository: https://github.com/anugram/ciphertrust.crypto
+
+documentation: https://github.com/anugram/ciphertrust.crypto/docs
+
+homepage: https://ciphertrust.io/
+
+issues: https://github.com/anugram/ciphertrust.crypto/issues
+
+build_ignore: []

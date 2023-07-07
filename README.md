@@ -1,2 +1,3 @@
-# ciphertrust.crypto
-perform crypto ops with CipherTrust Manager APIs
+# Ansible Collection - ciphertrust.crypto
+
+Documentation for the collection.
