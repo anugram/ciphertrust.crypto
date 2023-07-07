@@ -21,7 +21,7 @@ from __future__ import absolute_import, division, print_function
 __metaclass__ = type
 
 from ansible_collections.thalesgroup.ciphertrust.plugins.module_utils.modules import CipherTrustCryptoModule
-from ansible_collections.thalesgroup.ciphertrust.plugins.module_utils.ca import createLocalCA, updateLocalCA, selfSign, issueCertificate, revokeCert, resumeCert
+from ansible_collections.thalesgroup.ciphertrust.plugins.module_utils.ca import createLocalCA, updateLocalCA, selfSign, issueCertificate, revokeCert, resumeCert, createCSRAndKey, createCSR
 from ansible_collections.thalesgroup.ciphertrust.plugins.module_utils.exceptions import CMApiException, AnsibleCMException
 
 DOCUMENTATION = '''
@@ -68,7 +68,7 @@ options:
           default: false
     op_type:
       description: Operation to be performed
-      choices: [create, patch]
+      choices: [create, patch, issue-cert, self-sign, revoke-cert, resume-cert, create-csr, create-csr-key]
       required: true
       type: str
     cn:
@@ -120,6 +120,32 @@ options:
       description: Specify one of the reason.
       choices: [unspecified, keyCompromise, cACompromise, affiliationChanged, superseded, cessationOfOperation, certificateHold, removeFromCRL, privilegeWithdrawn, aACompromise]
       type: str
+    csrParams:
+      description: Parameters to be used during creating CSR like the subject, x509 extensions and signature algorithm used.
+      type: dict
+    keyGenParams:
+      description: Parameters to be used for creating an asymmetric key to be used for CSR creation.
+      type: dict
+    keyID:
+      description: Type of the identifier, keyID, for the private key to be used for creating CSR.
+      type: str
+    keyIDType:
+      description: Parameters to be used for creating an asymmetric key to be used for CSR creation.
+      type: str
+    keyVersion:
+      description: Version of the private key, keyID, to be used for creating CSR.
+      type: int
+    encryptionAlgo:
+      description: Private key encryption algorithm.
+      choices: [AES256, AES192, AES128, TDES]
+      default: AES256
+      type: str
+    password:
+      description: Password to PEM-encrypt the private key. If not specified, the private key is not encrypted in return.
+      type: str
+    privateKeyBytes:
+      description: Private Key bytes of the key which is to be used while creating CSR(Algorithm and size should be according to this key). If not given will generate key internally as per algorithm and size.
+      type: str
 '''
 
 EXAMPLES = '''
@@ -147,6 +173,27 @@ _name = dict(
   ST=dict(type='str'),
 )
 
+_csr_params = dict(
+  cn=dict(type='str'),
+  dnsNames=dict(type='list', element='str'),
+  emailAddresses=dict(type='list', element='str'),
+  extendedKeyUsage=dict(type='list', element='str'),
+  ipAddresses=dict(type='list', element='str'),
+  isCA=dict(type='bool'),
+  keyUsage=dict(type='list', element='str'),
+  maxPathLen=dict(type='int'),
+  names=dict(type='list', element='dict', options=_name),
+  signatureAlgorithm=dict(type='str', options=['sha512WithRSA', 'sha384WithRSA', 'sha256WithRSA', 'sha1WithRSA', 'ecdsaWithSHA512', 'ecdsaWithSHA384', 'ecdsaWithSHA256', 'ecdsaWithSHA1']),
+  subjectKeyIdentifierHash=dict(type='bool'),
+)
+
+_keyGenParams = dict(
+  algorithm=dict(type='str', options=['RSA', 'EC'], default='RSA'),
+  curveid=dict(type='str', options=['secp224r1', 'secp384r1', 'secp521r1', 'prime256v1']),
+  keyName=dict(type='str'),
+  size=dict(type='str'),
+)
+
 argument_spec = dict(
     op_type=dict(type='str', options=[
       'create', 
@@ -155,6 +202,8 @@ argument_spec = dict(
       'self-sign',
       'revoke-cert',
       'resume-cert',
+      'create-csr',
+      'create-csr-key',
     ], required=True),
     id=dict(type='str'),
     cert_id=dict(type='str'),
@@ -178,6 +227,16 @@ argument_spec = dict(
     notBefore=dict(type='str'),
     # Revoke Cert
     reason=dict(type='int', options=['unspecified', 'keyCompromise', 'cACompromise', 'affiliationChanged', 'superseded', 'cessationOfOperation', 'certificateHold', 'removeFromCRL', 'privilegeWithdrawn', 'aACompromise']),
+    # Create CSR
+    csrParams=dict(type='dict', options=_csr_params),
+    keyGenParams=dict(type='dict', options=_keyGenParams),
+    keyID=dict(type='str'),
+    keyIDType=dict(type='str'),
+    keyVersion=dict(type='int'),
+    # create CSR with Key
+    encryptionAlgo=dict(type='str', options=['AES256', 'AES192', 'AES128', 'TDES'], default='AES256'),
+    password=dict(type='str'),
+    privateKeyBytes=dict(type='str'),
 )
 
 def validate_parameters(cm_local_ca_module):
@@ -193,6 +252,7 @@ def setup_module_object():
             ['op_type', 'issue-cert', ['id', 'csr', 'purpose']],
             ['op_type', 'revoke-cert', ['id', 'cert_id', 'reason']],
             ['op_type', 'resume-cert', ['id', 'cert_id']],
+            ['op_type', 'create-csr-key', ['id', 'cn']],
         ),
         mutually_exclusive=[],
         supports_check_mode=True,
@@ -303,6 +363,46 @@ def main():
           node=module.params.get('localNode'),
           id=module.params.get('id'),
           cert_id=module.params.get('cert_id'),
+        )
+        result['response'] = response
+      except CMApiException as api_e:
+        if api_e.api_error_code:
+          module.fail_json(msg="status code: " + str(api_e.api_error_code) + " message: " + api_e.message)
+      except AnsibleCMException as custom_e:
+        module.fail_json(msg=custom_e.message)
+
+    elif module.params.get('op_type') == 'create-csr':
+      try:
+        response = createCSR(
+          node=module.params.get('localNode'),
+          csrParams=module.params.get('csrParams'),
+          keyGenParams=module.params.get('keyGenParams'),
+          keyID=module.params.get('keyID'),
+          keyIDType=module.params.get('keyIDType'),
+          keyVersion=module.params.get('keyVersion'),
+        )
+        result['response'] = response
+      except CMApiException as api_e:
+        if api_e.api_error_code:
+          module.fail_json(msg="status code: " + str(api_e.api_error_code) + " message: " + api_e.message)
+      except AnsibleCMException as custom_e:
+        module.fail_json(msg=custom_e.message)
+
+    elif module.params.get('op_type') == 'create-csr-key':
+      try:
+        response = createCSRAndKey(
+          node=module.params.get('localNode'),
+          cn=module.params.get('cn'),
+          algorithm=module.params.get('algorithm'),
+          dnsNames=module.params.get('dnsNames'),
+          emailAddresses=module.params.get('emailAddresses'),
+          ipAddresses=module.params.get('ipAddresses'),
+          name=module.params.get('name'),
+          names=module.params.get('names'),
+          size=module.params.get('size'),
+          encryptionAlgo=module.params.get('encryptionAlgo'),
+          privateKeyBytes=module.params.get('privateKeyBytes'),
+          size=module.params.get('size'),
         )
         result['response'] = response
       except CMApiException as api_e:

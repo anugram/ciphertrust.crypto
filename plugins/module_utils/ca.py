@@ -147,3 +147,47 @@ def resumeCert(**kwargs):
       raise
     except AnsibleCMException as custom_e:
       raise
+
+def createCSR(**kwargs):
+    request = {}
+
+    for key, value in kwargs.items():
+        if key not in ["node"] and value != None:
+            request[key] = value
+
+    payload = json.dumps(request)
+
+    try:
+      response = POSTData(
+          payload=payload,
+          cm_node=kwargs['node'],
+          cm_api_endpoint="vault/csr",
+          id="csr",
+        )
+      return ast.literal_eval(str(response))
+    except CMApiException as api_e:
+      raise
+    except AnsibleCMException as custom_e:
+      raise
+
+def createCSRAndKey(**kwargs):
+    request = {}
+
+    for key, value in kwargs.items():
+        if key not in ["node"] and value != None:
+            request[key] = value
+
+    payload = json.dumps(request)
+
+    try:
+      response = POSTData(
+          payload=payload,
+          cm_node=kwargs['node'],
+          cm_api_endpoint="ca/csr",
+          id="csr",
+        )
+      return ast.literal_eval(str(response))
+    except CMApiException as api_e:
+      raise
+    except AnsibleCMException as custom_e:
+      raise
