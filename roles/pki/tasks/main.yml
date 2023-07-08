@@ -1,2 +1,16 @@
 ---
 # tasks file for pki
+- name: Add Local CA
+  ciphertrust.crypto.cm_local_ca:
+    localNode: "{{ this_node_connection_string }}"
+    op_type: create
+    cn: ansible
+    name: AnsibleCA
+    algorithm: RSA
+    size: 4096
+    names:
+      - O: ciphertrust
+        OU: dev
+        L: ott
+        ST: ON
+        C: CA
