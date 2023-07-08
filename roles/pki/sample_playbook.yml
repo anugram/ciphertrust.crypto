@@ -2,4 +2,4 @@
 
 - hosts: localhost
   roles:
-    - ciphertrust.crypto
+    - ciphertrust_pki_role
