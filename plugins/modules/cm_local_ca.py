@@ -209,7 +209,7 @@ argument_spec = dict(
     cert_id=dict(type='str'),
     # Add local CA
     cn=dict(type='str'),
-    algorithm=dict(type='int', options=['RSA', 'ECDSA']),
+    algorithm=dict(type='str', options=['RSA', 'ECDSA']),
     dnsNames=dict(type='list', element='str'),
     emailAddresses=dict(type='list', element='str'),
     ipAddresses=dict(type='list', element='str'),
