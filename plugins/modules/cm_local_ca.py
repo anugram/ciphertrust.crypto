@@ -20,9 +20,9 @@
 from __future__ import absolute_import, division, print_function
 __metaclass__ = type
 
-from ansible_collections.thalesgroup.ciphertrust.plugins.module_utils.modules import CipherTrustCryptoModule
-from ansible_collections.thalesgroup.ciphertrust.plugins.module_utils.ca import createLocalCA, updateLocalCA, selfSign, issueCertificate, revokeCert, resumeCert, createCSRAndKey, createCSR
-from ansible_collections.thalesgroup.ciphertrust.plugins.module_utils.exceptions import CMApiException, AnsibleCMException
+from ansible_collections.anugram.cm_pki.plugins.module_utils.modules import CipherTrustCryptoModule
+from ansible_collections.anugram.cm_pki.plugins.module_utils.ca import createLocalCA, updateLocalCA, selfSign, issueCertificate, revokeCert, resumeCert, createCSRAndKey, createCSR
+from ansible_collections.anugram.cm_pki.plugins.module_utils.exceptions import CMApiException, AnsibleCMException
 
 DOCUMENTATION = '''
 ---
@@ -150,7 +150,7 @@ options:
 
 EXAMPLES = '''
 - name: "Create CM Local CA"
-  ciphertrust.crypto.cm_local_ca:
+  anugram.cm_pki.cm_local_ca:
     localNode:
         server_ip: "IP/FQDN of CipherTrust Manager"
         server_private_ip: "Private IP in case that is different from above"
@@ -402,7 +402,6 @@ def main():
           size=module.params.get('size'),
           encryptionAlgo=module.params.get('encryptionAlgo'),
           privateKeyBytes=module.params.get('privateKeyBytes'),
-          size=module.params.get('size'),
         )
         result['response'] = response
       except CMApiException as api_e:

@@ -26,7 +26,7 @@ import json
 import ast
 import re
 
-from ansible_collections.ciphertrust.plugins.module_utils.exceptions import CMApiException, AnsibleCMException
+from ansible_collections.anugram.cm_pki.plugins.module_utils.exceptions import CMApiException, AnsibleCMException
 
 def is_json(myjson):
   try:

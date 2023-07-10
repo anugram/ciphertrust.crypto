@@ -23,8 +23,8 @@ __metaclass__ = type
 import json
 import ast
 
-from ansible_collections.thalesgroup.ciphertrust.plugins.module_utils.api import POSTData, PATCHData, POSTWithoutData
-from ansible_collections.thalesgroup.ciphertrust.plugins.module_utils.exceptions import CMApiException, AnsibleCMException
+from ansible_collections.anugram.cm_pki.plugins.module_utils.api import POSTData, PATCHData, POSTWithoutData
+from ansible_collections.anugram.cm_pki.plugins.module_utils.exceptions import CMApiException, AnsibleCMException
 
 def createLocalCA(**kwargs):
     request = {}
