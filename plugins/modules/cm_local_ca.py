@@ -234,7 +234,7 @@ argument_spec = dict(
     keyIDType=dict(type='str'),
     keyVersion=dict(type='int'),
     # create CSR with Key
-    encryptionAlgo=dict(type='str', options=['AES256', 'AES192', 'AES128', 'TDES'], default='AES256'),
+    encryptionAlgo=dict(type='str', options=['AES256', 'AES192', 'AES128', 'TDES']),
     password=dict(type='str'),
     privateKeyBytes=dict(type='str'),
 )
@@ -252,7 +252,7 @@ def setup_module_object():
             ['op_type', 'issue-cert', ['id', 'csr', 'purpose']],
             ['op_type', 'revoke-cert', ['id', 'cert_id', 'reason']],
             ['op_type', 'resume-cert', ['id', 'cert_id']],
-            ['op_type', 'create-csr-key', ['id', 'cn']],
+            ['op_type', 'create-csr-key', ['cn']],
         ),
         mutually_exclusive=[],
         supports_check_mode=True,
