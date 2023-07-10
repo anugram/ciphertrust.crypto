@@ -138,7 +138,6 @@ options:
     encryptionAlgo:
       description: Private key encryption algorithm.
       choices: [AES256, AES192, AES128, TDES]
-      default: AES256
       type: str
     password:
       description: Password to PEM-encrypt the private key. If not specified, the private key is not encrypted in return.
@@ -159,6 +158,72 @@ EXAMPLES = '''
         password: "CipherTrust Manager Password"
         verify: false
     op_type: create
+    cn: local_ca_ansible
+    name: AnsibleLocalCA
+    algorithm: RSA
+    size: 4096
+    names:
+      - C: CA
+        ST: ontario
+        L: ottawa
+        O: ciphertrust
+        OU: test
+  register: ca
+
+- name: Self sign the CA
+  anugram.cm_pki.cm_local_ca:
+    localNode:
+        server_ip: "IP/FQDN of CipherTrust Manager"
+        server_private_ip: "Private IP in case that is different from above"
+        server_port: 5432
+        user: "CipherTrust Manager Username"
+        password: "CipherTrust Manager Password"
+        verify: false
+    op_type: self-sign
+    id: "{{ ca['response']['id'] }}"
+    duration: 365
+
+- name: Create CSR
+  anugram.cm_pki.cm_local_ca:
+    localNode:
+        server_ip: "IP/FQDN of CipherTrust Manager"
+        server_private_ip: "Private IP in case that is different from above"
+        server_port: 5432
+        user: "CipherTrust Manager Username"
+        password: "CipherTrust Manager Password"
+        verify: false
+    op_type: create-csr-key
+    cn: csr
+    name: AnsibleCSR
+    algorithm: RSA
+    size: 2048
+    ipAddresses:
+      - 10.1.1.10
+    names:
+      - C: CA
+        ST: ontario
+        L: ottawa
+        O: ciphertrust
+        OU: test
+    encryptionAlgo: AES256
+  register: csr
+
+- name: Issue Certificate
+  anugram.cm_pki.cm_local_ca:
+    localNode:
+        server_ip: "IP/FQDN of CipherTrust Manager"
+        server_private_ip: "Private IP in case that is different from above"
+        server_port: 5432
+        user: "CipherTrust Manager Username"
+        password: "CipherTrust Manager Password"
+        verify: false
+    op_type: issue-cert
+    id: "{{ ca['response']['id'] }}"
+    csr: "{{ csr['response']['data']['csr'] }}"
+    purpose: server
+    duration: 365
+    name: AnsibleServerCert
+  register: cert
 '''
 
 RETURN = '''
