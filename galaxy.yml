@@ -1,6 +1,6 @@
-namespace: anugram
+namespace: ciphertrust
 
-name: cm_pki
+name: crypto
 
 version: 1.0.0
 
