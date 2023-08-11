@@ -6,14 +6,10 @@ on:
       - main
       
 jobs:
-  validate-docs:
+  build-docs:
     permissions:
       contents: read
-    name: Validate Ansible Docs
-    if: github.event.action != 'closed'
-    uses: ansible-community/github-docs-build/.github/workflows/_shared-docs-build-push.yml@main
+    name: Build Ansible Docs
+    uses: ansible-community/github-docs-build/.github/workflows/_shared-docs-build-pr.yml@main
     with:
-      artifact-upload: false
-      init-lenient: false
-      init-fail-on-error: true
-      build-ref: refs/pull/${{ github.event.number }}/merge
+      init-dest-dir: docs/preview
